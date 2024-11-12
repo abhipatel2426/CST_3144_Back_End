@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <h1 v-text="sitename"></h1>
+            <button v-on:click="showCheckout">
+                <!-- 'cartItemCount' is used the same way as a data property. -->
+                {{ cartItemCount }}
+                <!-- add the cart icon -->
+                <span class="fas fa-cart-plus"></span> Checkout
+            </button>
+        </header>
+        <main>
+            <div v-if="showinformation">
+                <div v-for="lesson in lessons" :key="lesson.id">
+
+                    <figure>
+                        <img v-bind:src="lesson.image" style="width:100px">
+                    </figure>
+                    <p>Subject: {{ lesson.subject}}</p>
+                    <p>Location: {{ lesson.Location}}</p>
+                    <p>Price: {{ lesson .Price}}</p>
+                    <p>Space: {{ spaceLeft(lesson) }}</p>
+
+                    <button v-on:click="addtocart(lesson)" v-if="canAddToCart(lesson)">Add to cart</button>
+                    <button disabled='disabled' v-else>Add to cart</button>
+                    <span v-if="spaceLeft(lesson) === 0"> All out! </span>
+                    <span v-else-if="spaceLeft(lesson) <= 2">only {{spaceLeft(lesson)}} left! </span>
+                    <span v-else> Buy now!</span>
+                </div>
+            </div>
+            <div v-else>
+                <!--the code for the checkout page-->
+                <h2>Shopping cart</h2>
+                <div v-if="cart.length > 0">
+                    <div v-for="(lesson, index) in cart" :key="lesson.id + '-' + index">
+                        <figure>
+                            <img v-bind:src="lesson.image" style="width:100px">
+                        </figure>
+                        <p>Subject: {{ lesson.subject}}</p>
+                        <p>Location: {{ lesson.Location }}</p>
+                        <p>Price: {{ lesson.Price }}</p>
+
+                        <button v-on:click="removeFromCart(lesson)">Remove</button>
+                    </div><br>
+                    <strong>Total Price: {{ totalPrice}}</strong>
+
+
+                    <h3>Checkout</h3>
+                    <P>
+                        <strong>Name:</strong>
+                        <input v-model.trim="user.Name" required>
+                    </P>
+                    <P>
+                        <strong>Phone:</strong>
+                        <input v-model.number="user.Phone" required>
+                    </P>
+
+                    <h4>Order Information</h4>
+                    <P>Name: {{user.Name}}</P>
+                    <P>Phone: {{user.Phone}}</P>
+
+                    <button v-on:click="submitForm" :disabled="!isFormValid">Place Order</button>
+                </div>
+                <div v-else>
+                    <h3>Your cart is empty</h3>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="text/javascript">
+
+        let lessons = [
+            {
+                "id": 1,
+                "subject": "Math",
+                "Location": "London",
+                "Price": 100,
+                "image": "images/math.webp",
+                "Space": 5
+            },
+            {
+                "id": 2,
+                "subject": "Science",
+                "Location": "New York",
+                "Price": 120,
+                "image": "images/science.png",
+                "Space": 3
+            },
+            {
+                "id": 3,
+                "subject": "Music",
+                "Location": "London",
+                "Price": 140,
+                "image": "images/music.png",
+                "Space": 4
+            },
+            {
+                "id": 4,
+                "subject": "English",
+                "Location": "London",
+                "Price": 300,
+                "image": "images/english.png",
+                "Space": 5
+            },
+            {
+                "id": 5,
+                "subject": "Sport",
+                "Location": "Mehasana",
+                "Price": 400,
+                "image": "images/sport.png",
+                "Space": 5
+            }
+        ]
+        var webstore = new Vue({
+            el: '#app',
+            data: {
+                showinformation: true,
+                sitename: 'Lessons Infomation',
+                lessons: lessons,
+                cart: [],
+                user: {
+
+                },
+            },
+
+            methods: {
+
+                addtocart: function (lesson) {
+                    this.cart.push({ ...lesson });
+                },
+                removeFromCart: function (lesson) {
+                    let index = this.cart.indexOf(lesson);
+                    if (index !== -1) {
+                        this.cart.splice(index, 1);
+                    }
+                },
+                showCheckout() {
+                    this.showinformation = this.showinformation ? false : true
+                },
+                spaceLeft(lesson) {
+                    let countInCart = this.cart.filter(cartLesson => cartLesson.id === lesson.id).length;
+                    return lesson.Space - countInCart;
+                },
+                canAddToCart: function (lesson) {
+                    return this.spaceLeft(lesson) > 0;
+                },
+                submitForm() {
+                    if (!this.user.Name || !this.user.Phone) {
+                        alert('Please fill in all required fields.');
+                        return;
+                    }
+
+                    alert('Order submitted!');
+
+                }
+            },
+            computed: {
+                cartItemCount: function () {
+                    return this.cart.length || "";
+                },
+                totalPrice: function () {
+                    return this.cart.reduce((sum, lesson) => sum + lesson.Price, 0);
+                },
+
+                cartItems: function () {
+                    // Ensure each lesson appears only once in the cart summary, with its count
+                    return [...new Set(this.cart)];
+                },
+                isFormValid() {
+                    // Check if Name and Phone are not empty
+                    return this.user.Name && this.user.Phone;
+                }
+
+
+            }
+        })
+    </script>
+</body>
+
+</html>

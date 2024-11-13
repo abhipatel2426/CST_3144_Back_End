@@ -1,6 +1,16 @@
 // Import the Express module
 const express = require('express');
 
+// define author name to package.json using mustache
+
+var mustache = require("mustache");
+var result = mustache.render("Hi, {{first}} {{last}}!", {
+    first: "Abhi",
+    last: "Patel"
+});
+
+console.log(result);
+
 // Create an Express app
 const app = express();
 

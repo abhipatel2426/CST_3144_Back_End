@@ -1,5 +1,6 @@
 // Import the Express module
 const express = require('express');
+const fs = require('fs');
 
 // define author name to package.json using mustache
 
@@ -26,6 +27,23 @@ app.use((req, res, next) => {
     // Move to the next middleware or route handler
     next();
 })
+
+//path for handling image request
+app.use('/images', express.static('public/images'));
+
+//middleware to handling missing image files
+app.use('/images/:imageName', (req, res, next) => {
+    const imagePath = __dirname + '/public/images/' + req.params.imageName;
+
+    fs.access(imagePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            console.log(`Image not found: ${req.params.imageName}`);
+            res.status(404).send('Image not found');
+        } else {
+            next(); // File exists, pass control to express.static to serve it
+        }
+    });
+});
 
 // Serve static files from the 'public' directory
 app.use(express.static('public'));

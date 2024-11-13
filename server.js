@@ -17,6 +17,16 @@ const app = express();
 // Define the port your server will run on
 const PORT = process.env.PORT || 3000;
 
+//logger middleware 
+app.use((req, res, next) => {
+    //timestamp for req when received
+    const currentDate = new Date().toISOString();
+    //HTTP method, requested url, and timestamp
+    console.log(`[${currentDate}] ${req.method} ${req.url}`);
+    // Move to the next middleware or route handler
+    next();
+})
+
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 

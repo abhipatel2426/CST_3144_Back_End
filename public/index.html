@@ -7,6 +7,7 @@
     <title>Lesson App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
+   
 </head>
 
 <body>
@@ -78,115 +79,8 @@
             </div>
         </main>
     </div>
-
-    <script type="text/javascript">
-
-        let lessons = [
-            {
-                "id": 1,
-                "subject": "Math",
-                "Location": "London",
-                "Price": 100,
-                "image": "images/math.webp",
-                "Space": 5
-            },
-            {
-                "id": 2,
-                "subject": "Science",
-                "Location": "New York",
-                "Price": 120,
-                "image": "images/science.png",
-                "Space": 3
-            },
-            {
-                "id": 3,
-                "subject": "Music",
-                "Location": "London",
-                "Price": 140,
-                "image": "images/music.png",
-                "Space": 4
-            },
-            {
-                "id": 4,
-                "subject": "English",
-                "Location": "London",
-                "Price": 300,
-                "image": "images/english.png",
-                "Space": 5
-            },
-            {
-                "id": 5,
-                "subject": "Sport",
-                "Location": "Mehasana",
-                "Price": 400,
-                "image": "images/sport.png",
-                "Space": 5
-            }
-        ]
-        var webstore = new Vue({
-            el: '#app',
-            data: {
-                showinformation: true,
-                sitename: 'Lessons Infomation',
-                lessons: lessons,
-                cart: [],
-                user: {
-
-                },
-            },
-
-            methods: {
-
-                addtocart: function (lesson) {
-                    this.cart.push({ ...lesson });
-                },
-                removeFromCart: function (lesson) {
-                    let index = this.cart.indexOf(lesson);
-                    if (index !== -1) {
-                        this.cart.splice(index, 1);
-                    }
-                },
-                showCheckout() {
-                    this.showinformation = this.showinformation ? false : true
-                },
-                spaceLeft(lesson) {
-                    let countInCart = this.cart.filter(cartLesson => cartLesson.id === lesson.id).length;
-                    return lesson.Space - countInCart;
-                },
-                canAddToCart: function (lesson) {
-                    return this.spaceLeft(lesson) > 0;
-                },
-                submitForm() {
-                    if (!this.user.Name || !this.user.Phone) {
-                        alert('Please fill in all required fields.');
-                        return;
-                    }
-
-                    alert('Order submitted!');
-
-                }
-            },
-            computed: {
-                cartItemCount: function () {
-                    return this.cart.length || "";
-                },
-                totalPrice: function () {
-                    return this.cart.reduce((sum, lesson) => sum + lesson.Price, 0);
-                },
-
-                cartItems: function () {
-                    // Ensure each lesson appears only once in the cart summary, with its count
-                    return [...new Set(this.cart)];
-                },
-                isFormValid() {
-                    // Check if Name and Phone are not empty
-                    return this.user.Name && this.user.Phone;
-                }
-
-
-            }
-        })
-    </script>
+    <script src="lessonsData.js"></script>
+    <script src="index.js"></script>
 </body>
 
 </html>

@@ -1,6 +1,7 @@
 // Import the Express module
 const express = require('express');
 const fs = require('fs');
+const lessons = require('./public/lessonsData');
 
 // define author name to package.json using mustache
 
@@ -47,6 +48,11 @@ app.use('/images/:imageName', (req, res, next) => {
 
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
+
+// Define the /lessons route that returns lessons as JSON
+app.get('/lessons', (req, res) => {
+    res.json(lessons); // Send the lessons array as JSON
+});
 
 // Define a route for the root URL ("/")
 app.get('/', (req, res) => {

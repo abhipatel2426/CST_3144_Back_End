@@ -2,6 +2,7 @@
 const express = require('express');
 const fs = require('fs');
 const lessons = require('./public/lessonsData');
+const { MongoClient } = require('mongodb');
 
 // define author name to package.json using mustache
 
@@ -63,3 +64,34 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+//Mongodb connection
+
+const uri = "mongodb+srv://pabhi5751:XxwwZGqbzvta2Ut1@lessons.dxdq4.mongodb.net/?retryWrites=true&w=majority&appName=Lessons";
+
+const client = new MongoClient(uri);
+
+async function insertLessonsOnce() {
+    try {
+        await client.connect();
+        console.log('Connected to MongoDB');
+
+        const db = client.db('MyDatabase');
+        const collection = db.collection('Lessons');
+
+        // Check if lessons already exist
+        const existingLessons = await collection.find().toArray();
+        if (existingLessons.length === 0) {
+            const result = await collection.insertMany(lessons);
+            console.log(`${result.insertedCount} lessons inserted.`);
+        } else {
+            console.log('Lessons already exist in the database.');
+        }
+    } catch (err) {
+        console.error('Error:', err);
+    } finally {
+        await client.close();
+    }
+}
+
+insertLessonsOnce();

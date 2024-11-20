@@ -1,5 +1,6 @@
 // Import the Express module
 const express = require('express');
+const cors = require('cors');
 const fs = require('fs');
 const lessons = require('./public/lessonsData');
 const { MongoClient } = require('mongodb');
@@ -18,7 +19,7 @@ console.log(result);
 const app = express();
 
 // Define the port your server will run on
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3050;
 
 //logger middleware 
 app.use((req, res, next) => {
@@ -49,6 +50,7 @@ app.use('/images/:imageName', (req, res, next) => {
 
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
+app.use(cors());
 
 // Define the /lessons route that returns lessons as JSON
 app.get('/lessons', (req, res) => {
@@ -89,9 +91,43 @@ async function insertLessonsOnce() {
         }
     } catch (err) {
         console.error('Error:', err);
-    } finally {
-        await client.close();
-    }
+    } 
 }
 
 insertLessonsOnce();
+
+app.use(express.json());
+
+
+// POST route to save a new order
+app.post('/order', async (req, res) => {
+    try {
+        const { name, phone, lessonIDs, spaces } = req.body;
+
+        // Validate incoming data
+        if (!name || !phone || !Array.isArray(lessonIDs) || !Array.isArray(spaces)) {
+            return res.status(400).json({ error: 'Invalid order data' });
+        }
+
+        // Ensure the number of lessonIDs matches the number of spaces
+        if (lessonIDs.length !== spaces.length) {
+            return res.status(400).json({ error: 'Lesson IDs and spaces must match in length' });
+        }
+
+        // Create order object
+        const order = {
+            name,
+            phone,
+            lessonIDs,
+            spaces
+        };
+
+        // Insert the order into the 'orders' collection
+        const db = client.db('MyDatabase');
+        const result = await db.collection('Orders').insertOne(order);
+        res.json({ message: 'Order placed successfully', orderId: result.insertedId });
+    } catch (error) {
+        console.error('Error saving order:', error);
+        res.status(500).json({ error: 'Failed to save order' });
+    }
+});

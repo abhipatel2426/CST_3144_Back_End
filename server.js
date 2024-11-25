@@ -2,17 +2,18 @@
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
+const { MongoClient, ObjectId } = require('mongodb');
+
+
+// Import lessons data for initial population
 const lessons = require('./public/lessonsData');
-const { MongoClient } = require('mongodb');
 
-// define author name to package.json using mustache
-
-var mustache = require("mustache");
-var result = mustache.render("Hi, {{first}} {{last}}!", {
+// Define author name using Mustache (example)
+const mustache = require('mustache');
+const result = mustache.render("Hi, {{first}} {{last}}!", {
     first: "Abhi",
     last: "Patel"
 });
-
 console.log(result);
 
 // Create an Express app
@@ -21,20 +22,17 @@ const app = express();
 // Define the port your server will run on
 const PORT = process.env.PORT || 3050;
 
-//logger middleware 
+// Middleware for request logging
 app.use((req, res, next) => {
-    //timestamp for req when received
     const currentDate = new Date().toISOString();
-    //HTTP method, requested url, and timestamp
     console.log(`[${currentDate}] ${req.method} ${req.url}`);
-    // Move to the next middleware or route handler
     next();
-})
+});
 
-//path for handling image request
+// Middleware for serving static images
 app.use('/images', express.static('public/images'));
 
-//middleware to handling missing image files
+// Middleware for handling missing image files
 app.use('/images/:imageName', (req, res, next) => {
     const imagePath = __dirname + '/public/images/' + req.params.imageName;
 
@@ -51,28 +49,13 @@ app.use('/images/:imageName', (req, res, next) => {
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 app.use(cors());
+app.use(express.json());
 
-// Define the /lessons route that returns lessons as JSON
-app.get('/lessons', (req, res) => {
-    res.json(lessons); // Send the lessons array as JSON
-});
-
-// Define a route for the root URL ("/")
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
-});
-
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
-
-//Mongodb connection
-
+// MongoDB connection
 const uri = "mongodb+srv://pabhi5751:XxwwZGqbzvta2Ut1@lessons.dxdq4.mongodb.net/?retryWrites=true&w=majority&appName=Lessons";
-
 const client = new MongoClient(uri);
 
+// Initial population of lessons in MongoDB
 async function insertLessonsOnce() {
     try {
         await client.connect();
@@ -91,43 +74,181 @@ async function insertLessonsOnce() {
         }
     } catch (err) {
         console.error('Error:', err);
-    } 
+    }
 }
-
 insertLessonsOnce();
 
-app.use(express.json());
+// Define a route for the root URL ("/")
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
 
+// API Routes
 
-// POST route to save a new order
-app.post('/order', async (req, res) => {
+// Get all lessons
+app.get('/lessons', async (req, res) => {
     try {
-        const { name, phone, lessonIDs, spaces } = req.body;
+        const db = client.db('MyDatabase');
+        const lessons = await db.collection('Lessons').find().toArray();
+        res.json(lessons);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch lessons' });
+    }
+});
 
-        // Validate incoming data
-        if (!name || !phone || !Array.isArray(lessonIDs) || !Array.isArray(spaces)) {
-            return res.status(400).json({ error: 'Invalid order data' });
-        }
+// Search lessons
+app.get('/search', async (req, res) => {
+    const { query } = req.query;
+    if (!query) {
+        return res.status(400).json({ error: 'Query parameter is required.' });
+    }
 
-        // Ensure the number of lessonIDs matches the number of spaces
-        if (lessonIDs.length !== spaces.length) {
-            return res.status(400).json({ error: 'Lesson IDs and spaces must match in length' });
-        }
+    try {
+        const db = client.db('MyDatabase');
+        const collection = db.collection('Lessons');
 
-        // Create order object
-        const order = {
-            name,
-            phone,
-            lessonIDs,
-            spaces
+        const numericQuery = !isNaN(Number(query)) ? Number(query) : null;
+
+        const searchQuery = {
+            $or: [
+                { subject: { $regex: query, $options: 'i' } },
+                { Location: { $regex: query, $options: 'i' } },
+                ...(numericQuery !== null
+                    ? [
+                          { Price: numericQuery },
+                          { Space: numericQuery }
+                      ]
+                    : [])
+            ]
         };
 
-        // Insert the order into the 'orders' collection
+        const results = await collection.find(searchQuery).toArray();
+        res.json(results);
+    } catch (err) {
+        console.error('Search error:', err);
+        res.status(500).json({ error: 'Search failed.' });
+    }
+});
+
+// PUT route to update the Space for a specific lesson
+app.put('/lessons/:id', async (req, res) => {
+    const lessonId = parseInt(req.params.id);
+    const { newSpace } = req.body;
+
+    if (isNaN(newSpace) || newSpace < 0) {
+        return res.status(400).json({ error: 'Invalid Space value. It must be a non-negative number.' });
+    }
+
+    try {
         const db = client.db('MyDatabase');
-        const result = await db.collection('Orders').insertOne(order);
-        res.json({ message: 'Order placed successfully', orderId: result.insertedId });
-    } catch (error) {
-        console.error('Error saving order:', error);
-        res.status(500).json({ error: 'Failed to save order' });
+        const collection = db.collection('Lessons');
+
+        const result = await collection.updateOne(
+            { id: lessonId },
+            { $set: { Space: newSpace } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Lesson not found.' });
+        }
+
+        res.json({ message: 'Space updated successfully.' });
+    } catch (err) {
+        console.error('Error updating Space:', err);
+        res.status(500).json({ error: 'Failed to update Space.' });
+    }
+});
+
+// PUT route to update any field(s) of a lesson
+app.put('/lessons/update/:id', async (req, res) => {
+    const lessonId = parseInt(req.params.id);
+    const updates = req.body;
+
+    if (!updates || typeof updates !== 'object' || Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: 'No updates provided or invalid format.' });
+    }
+
+    try {
+        const db = client.db('MyDatabase');
+        const collection = db.collection('Lessons');
+
+        const result = await collection.updateOne(
+            { id: lessonId },
+            { $set: updates }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Lesson not found.' });
+        }
+
+        res.json({ message: 'Lesson updated successfully.' });
+    } catch (err) {
+        console.error('Error updating lesson:', err);
+        res.status(500).json({ error: 'Failed to update lesson.' });
+    }
+});
+
+// Start the server
+app.listen(PORT, async () => {
+    try {
+        await client.connect();
+        console.log('Connected to MongoDB');
+        console.log(`Server is running on http://localhost:${PORT}`);
+    } catch (err) {
+        console.error('Failed to connect to MongoDB', err);
+    }
+});
+// PUT route to update Spaces in the Orders collection
+app.put('/lessons/:id', async (req, res) => {
+    const lessonId = parseInt(req.params.id);
+    const { newSpace } = req.body;
+
+    if (isNaN(newSpace) || newSpace < 0) {
+        return res.status(400).json({ error: 'Invalid Space value. It must be a non-negative number.' });
+    }
+
+    try {
+        const db = client.db('MyDatabase');
+        const collection = db.collection('Lessons');
+
+        const result = await collection.updateOne(
+            { id: lessonId },
+            { $set: { Space: newSpace } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Lesson not found.' });
+        }
+
+        res.json({ message: 'Space updated successfully.' });
+    } catch (err) {
+        console.error('Error updating Space:', err);
+        res.status(500).json({ error: 'Failed to update Space.' });
+    }
+});
+
+// PUT route to update any field(s) of a lesson
+app.put('/orders/:id', async (req, res) => {
+    const orderId = req.params.id; // Get the order ID from the URL
+    const updates = req.body; // Get updates from the request body
+
+    try {
+        const db = client.db('MyDatabase');
+        const ordersCollection = db.collection('Orders');
+
+        // Update the order with the given ID
+        const result = await ordersCollection.updateOne(
+            { _id: new ObjectId(orderId) }, // Correctly use ObjectId here
+            { $set: updates } // Apply the updates
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Order not found.' });
+        }
+
+        res.json({ message: 'Order updated successfully.', updates });
+    } catch (err) {
+        console.error('Error updating order:', err);
+        res.status(500).json({ error: 'Failed to update order.' });
     }
 });

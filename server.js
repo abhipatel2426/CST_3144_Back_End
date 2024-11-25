@@ -52,8 +52,15 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
+// const uri = "mongodb+srv://pabhi5751:XxwwZGqbzvta2Ut1@lessons.dxdq4.mongodb.net/?retryWrites=true&w=majority&appName=Lessons";
 const uri = "mongodb+srv://pabhi5751:XxwwZGqbzvta2Ut1@lessons.dxdq4.mongodb.net/?retryWrites=true&w=majority&appName=Lessons";
 const client = new MongoClient(uri);
+
+const options = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    tlsAllowInvalidCertificates: true, // Allow invalid SSL certificates
+};
 
 // Initial population of lessons in MongoDB
 async function insertLessonsOnce() {

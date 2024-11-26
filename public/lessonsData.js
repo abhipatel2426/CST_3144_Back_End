@@ -44,7 +44,7 @@ const lessons = [
         "subject": "Programming",
         "Location": "New York",
         "Price": 250,
-        "image": "images/programming.png",
+        "image": "images/programming",
         "Space": 10
     },
     {

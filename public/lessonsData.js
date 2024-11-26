@@ -41,19 +41,19 @@ const lessons = [
     },
     {
         "id": 6,
-        "subject": "Sport",
-        "Location": "Mehasana",
-        "Price": 400,
+        "subject": "Programming",
+        "Location": "New York",
+        "Price": 250,
         "image": "images/sport.png",
-        "Space": 5
+        "Space": 10
     },
     {
         "id": 7,
-        "subject": "Sport",
-        "Location": "Mehasana",
-        "Price": 400,
-        "image": "images/sport.png",
-        "Space": 5
+        "subject": "History",
+        "Location": "Paris",
+        "Price": 180,
+        "image": "images/english.png",
+        "Space": 8
     }
 ];
 // Export for server use

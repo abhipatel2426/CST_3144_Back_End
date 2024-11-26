@@ -261,3 +261,13 @@ app.put('/orders/:id', async (req, res) => {
         res.status(500).json({ error: 'Failed to update order.' });
     }
 });
+// Get all orders
+app.get('/orders', async (req, res) => {
+    try {
+        const db = client.db('MyDatabase');
+        const orders = await db.collection('Orders').find().toArray();
+        res.json(orders);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch orders' });
+    }
+});

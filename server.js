@@ -271,3 +271,40 @@ app.get('/orders', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch orders' });
     }
 });
+app.post('/order', async (req, res) => {
+    try {
+        const { name, phone, lessonIDs, spaces } = req.body;
+
+        // Log incoming data
+        console.log('Received order data:', req.body);
+
+        // Validate incoming data
+        if (!name || !phone || !Array.isArray(lessonIDs) || !Array.isArray(spaces)) {
+            return res.status(400).json({ error: 'Invalid order data' });
+        }
+        if (lessonIDs.length !== spaces.length) {
+            return res.status(400).json({ error: 'Lesson IDs and spaces must match in length' });
+        }
+
+        // Create order object
+        const order = { name, phone, lessonIDs, spaces };
+
+        // Deduct spaces for each lesson
+        const db = client.db('MyDatabase');
+        const updates = lessonIDs.map((id, index) => {
+            return db.collection('Lessons').updateOne(
+                { id: id },
+                { $inc: { Space: -spaces[index] } }
+            );
+        });
+
+        await Promise.all(updates); // Apply all updates
+        const result = await db.collection('Orders').insertOne(order); // Save the order
+
+        console.log('Order saved successfully:', result);
+        res.json({ message: 'Order placed successfully', orderId: result.insertedId });
+    } catch (err) {
+        console.error('Error processing order:', err);
+        res.status(500).json({ error: 'Failed to place order' });
+    }
+});

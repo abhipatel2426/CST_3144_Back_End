@@ -44,7 +44,7 @@ const lessons = [
         "subject": "Programming",
         "Location": "New York",
         "Price": 250,
-        "image": "images/sport.png",
+        "image": "images/programming.png",
         "Space": 10
     },
     {
@@ -52,7 +52,7 @@ const lessons = [
         "subject": "History",
         "Location": "Paris",
         "Price": 180,
-        "image": "images/english.png",
+        "image": "images/history.png",
         "Space": 8
     },
         {
@@ -61,7 +61,7 @@ const lessons = [
             "Location": "Milan",
             "Price": 220,
             "Space": 6,
-            "image": "images/enlish.png"
+            "image": "images/art.png"
         },
         {
             "id": 9,
@@ -69,7 +69,7 @@ const lessons = [
             "Location": "Sydney",
             "Price": 190,
             "Space": 7,
-            "image": "images/english.png"
+            "image": "images/geograohy.png"
         },
         {
             "id": 10,
@@ -77,7 +77,7 @@ const lessons = [
             "Location": "Tokyo",
             "Price": 250,
             "Space": 5,
-            "image": "images/english.png"
+            "image": "images/bio.png"
         },
         {
             "id": 11,
@@ -85,7 +85,7 @@ const lessons = [
             "Location": "Berlin",
             "Price": 280,
             "Space": 8,
-            "image": "images/english.png"
+            "image": "images/chemistry.png"
         }
    
     

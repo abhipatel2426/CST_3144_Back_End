@@ -54,7 +54,41 @@ const lessons = [
         "Price": 180,
         "image": "images/english.png",
         "Space": 8
-    }
+    },
+        {
+            "id": 8,
+            "subject": "Art",
+            "Location": "Milan",
+            "Price": 220,
+            "Space": 6,
+            "image": "images/enlish.png"
+        },
+        {
+            "id": 9,
+            "subject": "Geography",
+            "Location": "Sydney",
+            "Price": 190,
+            "Space": 7,
+            "image": "images/english.png"
+        },
+        {
+            "id": 10,
+            "subject": "Biology",
+            "Location": "Tokyo",
+            "Price": 250,
+            "Space": 5,
+            "image": "images/english.png"
+        },
+        {
+            "id": 11,
+            "subject": "Chemistry",
+            "Location": "Berlin",
+            "Price": 280,
+            "Space": 8,
+            "image": "images/english.png"
+        }
+   
+    
 ];
 // Export for server use
 

@@ -59,6 +59,8 @@ const client = new MongoClient(uri);
 const options = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
     tlsAllowInvalidCertificates: true, // Allow invalid SSL certificates
 };
 

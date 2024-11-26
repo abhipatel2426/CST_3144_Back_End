@@ -13,7 +13,7 @@ const lessons = [
         "Location": "New York",
         "Price": 120,
         "image": "images/science.png",
-        "Space": 3
+        "Space": 15
     },
     {
         "id": 3,
